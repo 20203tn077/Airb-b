@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image } from 'react-native-elements';
 import { ScrollView } from 'react-native';
 import LoginForm from '../../components/profile/LoginForm';

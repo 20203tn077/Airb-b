@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { Input, Button, Icon } from 'react-native-elements';
 import { isEmpty } from 'lodash';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import Loading from '../Loading';
 
 export default function SignupForm(props) {
+    const [showLoading, setShowLoading] = useState(false);
     const { navigation } = props;
     const [showPassword, setShowPassword] = useState(true);
     const [showPasswordConfirm, setShowPasswordConfirm] = useState(true);
@@ -37,13 +39,16 @@ export default function SignupForm(props) {
             invalid = true;
         } else setError({ ...error, email: '' });
         if (!invalid) {
+            setShowLoading(true);
             const auth = getAuth();
             createUserWithEmailAndPassword(auth, formData.email, formData.password)
                 .then((userCredential) => {
                     navigation.navigate("profileStack");
+                    setShowLoading(false);
                 })
                 .catch((error) => {
                     console.log('Falló al registrar');
+                    setShowLoading(false);
                 });
         }
     };
@@ -126,6 +131,7 @@ export default function SignupForm(props) {
                 />
                 Crear cuenta
             </Text>
+            <Loading isVisible={showLoading} text="Cargando..."/>
         </View>
     )
 };

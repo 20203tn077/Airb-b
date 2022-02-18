@@ -3,9 +3,12 @@ import React, { useState } from 'react';
 import { Input, Button, Icon } from 'react-native-elements';
 import { isEmpty } from 'lodash';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import Loading from '../Loading';
 
 export default function LoginForm(props) {
   const { navigation } = props;
+  const [showLoading, setShowLoading] = useState(false);
+
   const [showPassword, setShowPassword] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const change = (event, type) => {
@@ -24,14 +27,16 @@ export default function LoginForm(props) {
         email: '',
         password: ''
       });
-
+      setShowLoading(true);
       const auth = getAuth();
       signInWithEmailAndPassword(auth, formData.email, formData.password)
         .then((userCredential) => {
           navigation.navigate("profileStack");
+          setShowLoading(false);
         })
         .catch((error) => {
           console.log('usuario y/o contraseña incorrectos');
+          setShowLoading(false);
         });
     }
   };
@@ -99,6 +104,7 @@ export default function LoginForm(props) {
         />
         Crear cuenta
       </Text>
+      <Loading isVisible={showLoading} text="Cargando..."/>
     </View>
   )
 };

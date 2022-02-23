@@ -28,6 +28,14 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "description": "Proyecto escolar"
+    "description": "Proyecto escolar",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Hola, dame permisos para poder robar tus fotos :)"
+        }
+      ]
+    ]
   }
 }

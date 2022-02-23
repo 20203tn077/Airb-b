@@ -1,12 +1,15 @@
 import { StyleSheet, Text, View } from 'react-native';
-import React from 'react';
+import React, {useRef} from 'react';
 import { Image } from 'react-native-elements';
 import { ScrollView } from 'react-native';
 import SignupForm from '../../components/profile/SignupForm';
 import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-easy-toast';
+
 
 export default function UserSignup() {
   const navigation = useNavigation();
+  const toastRef = useRef();
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -15,8 +18,13 @@ export default function UserSignup() {
             resizeMode='contain'
             style={styles.img}
         />
-        <SignupForm navigation={navigation}/>
+        <SignupForm navigation={navigation} toastRef={toastRef}/>
       </ScrollView>
+      <Toast
+        ref={toastRef}
+        opacity={0,9}
+        position="center"
+      />
     </View>
   )
 };

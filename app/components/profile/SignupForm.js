@@ -7,7 +7,7 @@ import Loading from '../Loading';
 
 export default function SignupForm(props) {
     const [showLoading, setShowLoading] = useState(false);
-    const { navigation } = props;
+    const { navigation, toastRef } = props;
     const [showPassword, setShowPassword] = useState(true);
     const [showPasswordConfirm, setShowPasswordConfirm] = useState(true);
     const [formData, setFormData] = useState({ email: '', password: '', passwordConfirm: '' });
@@ -50,7 +50,7 @@ export default function SignupForm(props) {
                     console.log('Falló al registrar');
                     setShowLoading(false);
                 });
-        }
+        } else toastRef.current.show("Hubo un error :p")
     };
     return (
         <View style={styles.container}>

@@ -1,12 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Input, Button, Icon } from 'react-native-elements';
 import { isEmpty } from 'lodash';
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Loading from '../Loading';
+import Toast from "react-native-easy-toast";
 
 export default function LoginForm(props) {
-  const { navigation } = props;
+  const { navigation, toastRef } = props;
   const [showLoading, setShowLoading] = useState(false);
 
   const [showPassword, setShowPassword] = useState(true);
@@ -36,6 +37,7 @@ export default function LoginForm(props) {
         })
         .catch((error) => {
           console.log('usuario y/o contraseña incorrectos');
+          toastRef.current.show("usuario y/o contraseña incorrectos");
           setShowLoading(false);
         });
     }

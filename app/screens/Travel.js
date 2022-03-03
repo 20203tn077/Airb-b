@@ -1,10 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { Icon } from 'react-native-elements';
 
-export default function Travel() {
+export default function Travel(props) {
+  const { navigation } = props;
+  const [user, setUser] = useState();
+  useEffect(() => {
+    const auth = getAuth();
+    onAuthStateChanged(auth, (userCredential) => {
+      setUser(userCredential)
+    })
+  }, [])
   return (
     <View style={styles.container}>
-      <Text>Viajes</Text>
+      {user && (
+        <Icon
+        reverse
+          type='material-community'
+          size={22}
+          color="#ff5a60"
+          containerStyle={styles.iconContainer}
+          name="plus"
+          onPress={() => navigation.navigate("addHouse")}
+        />
+      )}
     </View>
   );
 }
@@ -12,7 +32,13 @@ export default function Travel() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: "#fff",
+  },
+  iconContainer: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    shadowOffset: {width: 2, height: 2},
+    shadowOpacity: 0.5,
   }
 });

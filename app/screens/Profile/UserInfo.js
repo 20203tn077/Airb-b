@@ -69,6 +69,7 @@ export default function UserInfo(props) {
         size="large"
         containerStyle={styles.avatarContainer}
         source={photoURL ? { uri: photoURL } : require("../../../assets/logo_b.png")}
+        transition={true}
       >
         <Avatar.Accessory
           size={22} onPress={changeAvatar}

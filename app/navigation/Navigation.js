@@ -15,7 +15,7 @@ export default function Navigation() {
     return (
         <NavigationContainer>
             <Tab.Navigator
-                initialRouteName='profile'
+                initialRouteName='travel'
                 screenOptions={({ route }) => ({
                     tabBarIcon: ({ color }) => screenOptions(route, color),
                     tabBarActiveTintColor: '#ff5a60',

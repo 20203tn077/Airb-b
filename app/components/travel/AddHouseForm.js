@@ -5,15 +5,21 @@ import { map, size, filter } from 'lodash';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import MapView from 'react-native-maps';
-import { collection, addDoc } from 'firebase/firestore'
-import { db } from '../../utils/firebase'
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../../utils/firebase';
+import { async } from '@firebase/util';
 
 const widthScreen = Dimensions.get("Window".width);
 
 export default function AddHouseForm(props) {
     const { toastRef, setLoading } = props;
+    const [isVisibleMap, setIsVisibleMap] = useState(false);
     const [imageSelected, setImageSelected] = useState([]);
-    const [error, setError] = useState({ camera: '', place: '', address: '', description: '' })
+    const [place, setPlace] = useState('');
+    const [address, setAddress] = useState('');
+    const [description, setDescription] = useState('');
+    const [locationHouse, setLocationHouse] = useState(null);
+    const [error, setError] = useState({ camera: '', place: '', address: '', description: '' });
     return (
         <ScrollView>
             <ImagePreview
@@ -54,12 +60,12 @@ function UploadImage(props) {
                 aspect: [3, 2]
             })
             if (!result.cancelled) {
-                setImageSelected([...imageSelected, result.uri])
+                setImageSelected([...imageSelected, result.uri]);
             } else {
                 toastRef.current.show('has cerrado la galería');
             }
         } else {
-            toastRef.current.show("es necesario aceptar los permisos de cámara", 4000)
+            toastRef.current.show('es necesario aceptar los permisos de cámara', 4000)
         }
     }
 
@@ -97,13 +103,81 @@ function UploadImage(props) {
             )}
             {map(imageSelected, (image, index) => (
                 <Avatar
-                key={index }
-                style={styles.miniatureImage}
-                source={{uri: image}}
-                onPress={() => removeImage(image)}
-            />
+                    key={index}
+                    style={styles.miniatureImage}
+                    source={{ uri: image }}
+                    onPress={() => removeImage(image)}
+                />
             ))}
+            <View Style={{ flex: 1, alignItems: 'center', marginTop: 3 }}>
+                <Divider style={styles.divider} />
+            </View>
+            <View>
+                <Button
+                    title='Cancelar'
+                    containerStyle={styles.btnContainer}
+                    buttonStyle={styles.btnStyleCancel}
+                    onPress={() => setIsVisibleMap(false)}
+                />
+                <Button
+                    title='Guardar ubicación'
+                    containerStyle={styles.btnContainer}
+                    buttonStyle={styles.btnStyleSave}
+                    onPress={() => setIsVisibleMap(false)}
+                />
+            </View>
         </View>
+    )
+}
+
+function Map(props) {
+    const {isVisible, setIsVisibleMap, toastRef, setLocationHouse} = props;
+    const [location, setLocation] = useState();
+
+    useEffect(() => {
+        (async () => {
+            const resultPermission = await Location.requestForegroundPermissionsAsync()
+            if (resultPermission.status === 'granted') {
+                let loc = await Location.getCurrentPositionAsync({})
+                setLocation({
+                    latitude: loc.coords.latitude,
+                    longitude: loc.coords.longitude,
+                    latitudeDelta: 0.001,
+                    longitudeDelta: 0.001
+                })
+            } else {
+                toastRef.current.show('Es necesario aceptar los permisos de unicación')
+            }
+        }) ()
+    }, [])
+    const confirmLocation = () => {
+        setLocationHouse(location)
+        toastRef.current.show('Ubicación guardada')
+        setIsVisibleMap(false)
+    }
+    
+    return (
+        <Modal isVisible={isVisibleMap} setIsVisible={setIsVisibleMap}>
+            <View>
+                {location && (
+                    <MapView
+                        style={styles.map}
+                        initialRegion={location}
+                        showsUserLocation={true}
+                        onRegionChange={(region) => setLocation(region)}
+                    >
+                        <MapView.Marker
+                            coordinate={{
+                                latitude: location.latitude,
+                                longitude: location.longitude
+                            }}
+                            draggable
+                        />
+                    </MapView>
+                )}    
+            </View>    
+        </Modal>
+    
     )
 }
 

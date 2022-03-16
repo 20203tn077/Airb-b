@@ -8,6 +8,10 @@ import MapView from 'react-native-maps';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../utils/firebase';
 import { async } from '@firebase/util';
+import {getStorage, ref, uploadBytes, getDownloadURL} from 'firebase/storage'
+import uuid from 'random-uuid-v4'
+import {getAuth} from 'firebase/auth'
+import { useNavigation } from '@react-navigation/native'
 
 const widthScreen = Dimensions.get("Window".width);
 
@@ -20,6 +24,63 @@ export default function AddHouseForm(props) {
     const [description, setDescription] = useState('');
     const [locationHouse, setLocationHouse] = useState(null);
     const [error, setError] = useState({ camera: '', place: '', address: '', description: '' });
+    const navigation = useNavigation()
+
+    // no sé dónde va esto :p
+    setLoading(true)
+    saveImage().then(async (response) => {
+        try {
+            const auth = getAuth()
+            const docRef = await addDoc(collection(db, 'houses'), {
+                id: uuid(),
+                place: place,
+                description: description,
+                address: address,
+                location: locationHouse,
+                images: response,
+                rating: 0,
+                ratingTotal: 0,
+                quantityVoting: 0,
+                createAt: new Date(),
+                createBy: auth.currentUser.uid
+            })
+            setLoading(false)
+            navigation.navigate('travelStack')
+        } catch (err) {
+            console.log('error: ', err);
+        }
+    }).catch((err) => {
+        console.log('error al obtener imagen :', err);
+    })
+
+
+    const saveImage = async () => {
+        const imageBlob = []
+        await Promise.all(
+            map(imageSelected, async() => {
+                const response = await fetch(image)
+                const {_bodyBlob} = response
+                const storage = getStorage()
+                const id = uuid()
+                const storageRef = ref(storage, `house/${id}`)
+                await uploadBytes(storegeRef, _bodyBlob)
+                .then(async () => {
+                    await getDownloadURL(ref(storage, `house/${id}`))
+                    .then((url) => {
+                        imageBlob.push(url)
+                    }).catch((err) => {
+                        console.log('error al descargar: ', err);
+                    }).catch((err) => {
+                        console.log('error al subir: ', err);
+                    })
+                })
+            })
+            
+        )
+        return imageBlob
+    }
+
+
     return (
         <ScrollView>
             <ImagePreview

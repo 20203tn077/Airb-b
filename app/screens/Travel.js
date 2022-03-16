@@ -4,7 +4,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { Icon } from 'react-native-elements';
 
 export default function Travel(props) {
-  const { navigation } = props;
+  const { navigation, route } = props;
   const [user, setUser] = useState();
   useEffect(() => {
     const auth = getAuth();

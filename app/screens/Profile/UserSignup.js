@@ -22,7 +22,7 @@ export default function UserSignup() {
       </ScrollView>
       <Toast
         ref={toastRef}
-        opacity={0,9}
+        opacity={0.9}
         position="center"
       />
     </View>

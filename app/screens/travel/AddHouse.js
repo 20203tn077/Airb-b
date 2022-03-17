@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useRef, useState } from 'react'
 import AddHouseForm from '../../components/travel/AddHouseForm'
 import Loading from '../../components/Loading'
+import Toast from 'react-native-easy-toast'
 
 export default function AddHouse() {
   const toastRef = useRef()

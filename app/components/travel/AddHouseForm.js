@@ -1,33 +1,64 @@
-import { StyleSheet, Text, View, Alert, ScrollView, Dimensions } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import { Input, Button, Divider, Icon, Avatar, Image } from 'react-native-elements';
-import { map, size, filter } from 'lodash';
-import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
-import MapView from 'react-native-maps';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../../utils/firebase';
-import { async } from '@firebase/util';
-import {getStorage, ref, uploadBytes, getDownloadURL} from 'firebase/storage'
+import { StyleSheet, Text, View, Alert, ScrollView, Dimensions } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { Input, Button, Divider, Icon, Avatar, Image } from 'react-native-elements'
+import { map, size, filter } from 'lodash'
+import * as ImagePicker from 'expo-image-picker'
+import * as Location from 'expo-location'
+import MapView from 'react-native-maps'
+import { collection, addDoc } from 'firebase/firestore'
+import { db } from '../../utils/firebase'
+import { async } from '@firebase/util'
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import uuid from 'random-uuid-v4'
-import {getAuth} from 'firebase/auth'
+import { getAuth } from 'firebase/auth'
 import { useNavigation } from '@react-navigation/native'
+import Modal from '../../utils/Modal'
 
-const widthScreen = Dimensions.get("Window".width);
+const widthScreen = Dimensions.get("window").width;
 
 export default function AddHouseForm(props) {
-    const { toastRef, setLoading } = props;
-    const [isVisibleMap, setIsVisibleMap] = useState(false);
-    const [imageSelected, setImageSelected] = useState([]);
-    const [place, setPlace] = useState('');
-    const [address, setAddress] = useState('');
-    const [description, setDescription] = useState('');
-    const [locationHouse, setLocationHouse] = useState(null);
-    const [error, setError] = useState({ camera: '', place: '', address: '', description: '' });
+    const { toastRef, setLoading } = props
+    const [isVisibleMap, setIsVisibleMap] = useState(true)
+    const [imageSelected, setImageSelected] = useState([])
+    const [place, setPlace] = useState('')
+    const [address, setAddress] = useState('')
+    const [description, setDescription] = useState('')
+    const [locationHouse, setLocationHouse] = useState(null)
+    const [error, setError] = useState({ camera: '', place: '', address: '', description: '' })
     const navigation = useNavigation()
 
+    const saveHouse = () => {
+        console.log("Hola");
+      };
+
+    const saveImage = async () => {
+        const imageBlob = []
+        await Promise.all(
+            map(imageSelected, async () => {
+                const response = await fetch(image)
+                const { _bodyBlob } = response
+                const storage = getStorage()
+                const id = uuid()
+                const storageRef = ref(storage, `house/${id}`)
+                await uploadBytes(storegeRef, _bodyBlob)
+                    .then(async () => {
+                        await getDownloadURL(ref(storage, `house/${id}`))
+                            .then((url) => {
+                                imageBlob.push(url)
+                            }).catch((err) => {
+                                console.log('error al descargar: ', err);
+                            }).catch((err) => {
+                                console.log('error al subir: ', err);
+                            })
+                    })
+            })
+
+        )
+        return imageBlob
+    }
+
     // no sé dónde va esto :p
-    setLoading(true)
+    /*setLoading(true)
     saveImage().then(async (response) => {
         try {
             const auth = getAuth()
@@ -51,46 +82,43 @@ export default function AddHouseForm(props) {
         }
     }).catch((err) => {
         console.log('error al obtener imagen :', err);
-    })
+    })*/
 
 
-    const saveImage = async () => {
-        const imageBlob = []
-        await Promise.all(
-            map(imageSelected, async() => {
-                const response = await fetch(image)
-                const {_bodyBlob} = response
-                const storage = getStorage()
-                const id = uuid()
-                const storageRef = ref(storage, `house/${id}`)
-                await uploadBytes(storegeRef, _bodyBlob)
-                .then(async () => {
-                    await getDownloadURL(ref(storage, `house/${id}`))
-                    .then((url) => {
-                        imageBlob.push(url)
-                    }).catch((err) => {
-                        console.log('error al descargar: ', err);
-                    }).catch((err) => {
-                        console.log('error al subir: ', err);
-                    })
-                })
-            })
-            
-        )
-        return imageBlob
-    }
+
 
 
     return (
         <ScrollView>
-            <ImagePreview
-                imageSelected={imageSelected}
-            />
+            <ImagePreview imageSelected={imageSelected} />
             <UploadImage
                 toastRef={toastRef}
                 setImageSelected={setImageSelected}
                 imageSelected={imageSelected}
                 error={error}
+            />
+            <FormAdd
+                setIsVisibleMap={setIsVisibleMap}
+                setPlace={setPlace}
+                setDescription={setDescription}
+                setAddress={setAddress}
+                error={error}
+                LocationHouse={locationHouse}
+            ></FormAdd>
+            <Button
+                title="Crear condominio"
+                buttonStyle={styles.btn}
+                icon={
+                    <Icon type="font-awesome" name="save" size={15} color="white"></Icon>
+                }
+                iconContainerStyle={{ marginRight: 10 }}
+                onPress={saveHouse}
+            />
+            <Map
+                isVisibleMap={isVisibleMap}
+                setIsVisibleMap={setIsVisibleMap}
+                toastRef={toastRef}
+                setLocationHouse={setLocationHouse}
             />
         </ScrollView>
     )
@@ -101,9 +129,11 @@ function ImagePreview(props) {
     return (
         <View>
             <Image
-                source={size(imageSelected) ?
-                    { uri: imageSelected[0] } :
-                    require('../../../assets/logo_a.png')}
+                source={
+                    size(imageSelected)
+                        ? { uri: imageSelected[0] }
+                        : require("../../../assets/logo_b.png")
+                }
                 style={{ width: widthScreen, height: 200 }}
             />
         </View>
@@ -130,7 +160,7 @@ function UploadImage(props) {
         }
     }
 
-    const removeImage = () => {
+    const removeImage = (image) => {
         Alert.alert(
             'Eliminar imagen',
             '¿Estás seguro de eliminar la imagen?',
@@ -143,7 +173,9 @@ function UploadImage(props) {
                     text: 'Eliminar',
                     style: 'destructive',
                     onPress: () => {
-                        setImageSelected(filter(imageSelected, (imageUri) => imageUri !== Image))
+                        setImageSelected(
+                          filter(imageSelected, (imageUri) => imageUri !== image)
+                        );
                     }
                 },
             ]
@@ -173,26 +205,59 @@ function UploadImage(props) {
             <View Style={{ flex: 1, alignItems: 'center', marginTop: 3 }}>
                 <Divider style={styles.divider} />
             </View>
-            <View>
-                <Button
-                    title='Cancelar'
-                    containerStyle={styles.btnContainer}
-                    buttonStyle={styles.btnStyleCancel}
-                    onPress={() => setIsVisibleMap(false)}
-                />
-                <Button
-                    title='Guardar ubicación'
-                    containerStyle={styles.btnContainer}
-                    buttonStyle={styles.btnStyleSave}
-                    onPress={() => setIsVisibleMap(false)}
-                />
-            </View>
         </View>
     )
 }
 
+function FormAdd(props) {
+    const {
+        setIsVisibleMap,
+        setPlace,
+        setDescription,
+        setAddress,
+        error,
+        locationHouse,
+    } = props;
+    return (
+        <View style={styles.viewForm}>
+            <Input
+                label="Lugar*"
+                labelStyle={styles.label}
+                placeholder="Acapulco"
+                containerStyle={styles.inputContainer}
+                errorMessage={error.place}
+                onChange={(event) => setAddress(event.nativeEvent.text)}
+            ></Input>
+            <Input
+                label="Direccion*"
+                labelStyle={styles.label}
+                placeholder="Colonia Laureles"
+                containerStyle={styles.container}
+                errorMessage={error.address}
+                onChange={(event) => setAddress(event.nativeEvent.text)}
+                rightIcon={
+                    <Icon
+                        type="material-community"
+                        name="google-maps"
+                        color={locationHouse ? "#00a680" : "#c2c2c2"}
+                        onPress={() => setIsVisibleMap(true)}
+                    ></Icon>
+                }
+            ></Input>
+            <Input
+                label="Description*"
+                labelStyle={styles.label}
+                placeholder="Comentarios"
+                inputContainerStyle={styles.textArea}
+                errorMessage={error.description}
+                onChange={(event) => setAddress(event.nativeEvent.text)}
+            ></Input>
+        </View>
+    );
+}
+
 function Map(props) {
-    const {isVisible, setIsVisibleMap, toastRef, setLocationHouse} = props;
+    const { isVisibleMap, setIsVisibleMap, toastRef, setLocationHouse } = props;
     const [location, setLocation] = useState();
 
     useEffect(() => {
@@ -209,14 +274,15 @@ function Map(props) {
             } else {
                 toastRef.current.show('Es necesario aceptar los permisos de unicación')
             }
-        }) ()
+        })()
     }, [])
+
     const confirmLocation = () => {
         setLocationHouse(location)
         toastRef.current.show('Ubicación guardada')
         setIsVisibleMap(false)
     }
-    
+
     return (
         <Modal isVisible={isVisibleMap} setIsVisible={setIsVisibleMap}>
             <View>
@@ -235,31 +301,87 @@ function Map(props) {
                             draggable
                         />
                     </MapView>
-                )}    
-            </View>    
+                )}
+                <View>
+                <Button
+                    title='Cancelar'
+                    containerStyle={styles.btnContainer}
+                    buttonStyle={styles.btnStyleCancel}
+                    onPress={() => setIsVisibleMap(false)}
+                />
+                <Button
+                    title='Guardar ubicación'
+                    containerStyle={styles.btnContainer}
+                    buttonStyle={styles.btnStyleSave}
+                    onPress={confirmLocation}
+                />
+            </View>
+            </View>
         </Modal>
-    
+
     )
 }
 
 const styles = StyleSheet.create({
     viewUploadImage: {
-        flexDirection: 'row',
-        flex: 1,
-        marginHorizontal: 20,
+        flexDirection: "row",
+        marginLeft: 20,
+        marginRight: 20,
         marginTop: 20,
     },
     iconUploadImage: {
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: "center",
+        justifyContent: "center",
         marginRight: 10,
         height: 70,
         width: 70,
-        backgroundColor: '#e3e3e3'
+        backgroundColor: "#e3e3e3",
     },
     miniatureImage: {
         width: 70,
         height: 70,
         marginRight: 10,
-    }
-})
+    },
+    viewForm: {
+        marginLeft: 10,
+        marginRight: 10,
+        marginTop: 16,
+    },
+    label: {
+        fontSize: 15,
+        color: "#ff5a60",
+    },
+    inputContainer: {
+        marginBottom: 16,
+    },
+    textArea: {
+        height: 100,
+        width: "100%",
+    },
+    btn: {
+        backgroundColor: "#ff5a60",
+        margin: 20,
+    },
+    map: {
+        width: "100%",
+        height: 560,
+    },
+
+    divider: {
+        width: "85%",
+        backgroundColor: "#ff5a60",
+        marginBottom: 2,
+    },
+
+    btnContainer: {
+        padding: 5,
+        marginBottom: 10,
+    },
+    btnStyleCancel: {
+        backgroundColor: "#a60a0d",
+    },
+
+    btnStyleSave: {
+        backgroundColor: "#00a680",
+    },
+});

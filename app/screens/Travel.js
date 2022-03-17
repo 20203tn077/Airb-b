@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { Icon } from 'react-native-elements';
 import ListHouses from '../components/travel/ListHouses';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function Travel(props) {
   const { navigation, route } = props;
   const [user, setUser] = useState();
   const [houses, setHouses] = useState([])
   const [loading, setLoading] = useState(false)
+  
   useEffect(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, (userCredential) => {

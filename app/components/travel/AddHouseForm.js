@@ -28,34 +28,45 @@ export default function AddHouseForm(props) {
     const navigation = useNavigation()
 
     const saveHouse = () => {
+        let errores = 0;
+
         if (isEmpty(place)) {
             setError({...error, place: 'Debes ingresar un lugar'})
+            errores++
         } else {
             setError({...error, place: ''})
         }
 
         if (isEmpty(address)) {
             setError({...error, address: 'Debes agregar una dirección'})
+            errores++
         } else {
             setError({...error, address: ''})
         }
 
         if (isEmpty(description)) {
             setError({...error, description: 'Debes ingresar una descripción'})
+            errores++
         } else {
             setError({...error, description: ''})
         }
 
         if (locationHouse == null) {
-            setError({...error, address: ''})
+            setError({...error, address: 'Debes capturar una ubicación'})
+            errores++
         } else {
             setError({...error, address: ''})
         }
 
         if (imageSelected.length < 1) {
-            setError({...error, camera: ''})
+            setError({...error, camera: 'Debes seleccionar al menos una imagen'})
+            errores++
         } else {
             setError({...error, camera: ''})
+        }
+
+        if (errores == 0) {
+            
         }
       };
 

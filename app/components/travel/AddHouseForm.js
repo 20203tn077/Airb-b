@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Alert, ScrollView, Dimensions } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { Input, Button, Divider, Icon, Avatar, Image } from 'react-native-elements'
-import { map, size, filter } from 'lodash'
+import { map, size, filter, isEmpty } from 'lodash'
 import * as ImagePicker from 'expo-image-picker'
 import * as Location from 'expo-location'
 import MapView from 'react-native-maps'
@@ -28,7 +28,35 @@ export default function AddHouseForm(props) {
     const navigation = useNavigation()
 
     const saveHouse = () => {
-        console.log("Hola");
+        if (isEmpty(place)) {
+            setError({...error, place: 'Debes ingresar un lugar'})
+        } else {
+            setError({...error, place: ''})
+        }
+
+        if (isEmpty(address)) {
+            setError({...error, address: 'Debes agregar una dirección'})
+        } else {
+            setError({...error, address: ''})
+        }
+
+        if (isEmpty(description)) {
+            setError({...error, description: 'Debes ingresar una descripción'})
+        } else {
+            setError({...error, description: ''})
+        }
+
+        if (locationHouse == null) {
+            setError({...error, address: ''})
+        } else {
+            setError({...error, address: ''})
+        }
+
+        if (imageSelected.length < 1) {
+            setError({...error, camera: ''})
+        } else {
+            setError({...error, camera: ''})
+        }
       };
 
     const saveImage = async () => {

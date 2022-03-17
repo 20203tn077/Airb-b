@@ -2,21 +2,43 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { Icon } from 'react-native-elements';
+import ListHouses from '../components/travel/ListHouses';
 
 export default function Travel(props) {
   const { navigation, route } = props;
   const [user, setUser] = useState();
+  const [houses, setHouses] = useState([])
+  const [loading, setLoading] = useState(false)
   useEffect(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, (userCredential) => {
       setUser(userCredential)
     })
   }, [])
+  
+  useFocusEffect(
+    useCallback(()=> {
+      getHouses().then((response)=> {
+        setHouses(response)
+      })
+    }, [])
+  )
+
+  const getHouses = async () => {
+    const result = []
+    const housesRef = collection(db, 'houses')
+    const w = query(housesRef, orderBy('createAt)', 'desc'))
+    const querySnapshot = await getDocs((doc) => {
+      result.push(doc)
+    })
+    return result
+  }
   return (
     <View style={styles.container}>
+      <ListHouses houses={houses}/>
       {user && (
         <Icon
-        reverse
+          reverse
           type='material-community'
           size={22}
           color="#ff5a60"
@@ -38,7 +60,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 10,
     right: 10,
-    shadowOffset: {width: 2, height: 2},
+    shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.5,
   }
 });

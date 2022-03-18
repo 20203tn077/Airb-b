@@ -3,16 +3,18 @@ import React from 'react'
 import { size } from 'lodash'
 import { Icon, Image } from 'react-native-elements'
 import { TouchableOpacity } from 'react-native-gesture-handler'
+import { useNavigation } from '@react-navigation/native'
 
 export default function ListHouses(props) {
     
-    const { houses } = props
+    const { houses} = props
+    const navigation = useNavigation()
     return (
         <ScrollView>
             {size(houses) > 0 ? (
                 <FlatList
                 data={houses}
-                renderItem={(house) => <House house={house}/>}
+                renderItem={(house) => <House house={house} navigation={navigation}/>}
                 keyExtractor={(item, index) => index.toString}
                 
                 ></FlatList>
@@ -36,7 +38,7 @@ function House() {
 
     return (
         <TouchableOpacity
-            onPress={() => console.log('Me has presionado')}
+            onPress={() => navigation.navigate('house', {house})}
         >
             <View style={styles.container}>
                 <View style={styles.viewImage}>
@@ -51,11 +53,23 @@ function House() {
                 <View>
                     <Text style={{fontWeight:'bold'}}>{place}</Text>
                     <Text style={{paddingTop: 2, color: 'gray'}}>{address}</Text>
-                    <Text style={{paddingTop: 2, color: 'gray'}}>{description}</Text>
+                    <Text style={{paddingTop: 2, color: 'gray', width: 300}}>{description}</Text>
                 </View>
             </View>
         </TouchableOpacity>
     )
 }
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+
+    img: {
+        width: 80,
+        height: 80,
+    },
+    container: {
+        flexDirection: 'row',
+        margin: 10,
+    },
+    viewImage: {
+    }
+})

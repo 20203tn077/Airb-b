@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { Icon } from 'react-native-elements';
+import {db} from '../utils/firebase'
 import ListHouses from '../components/travel/ListHouses';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function Travel(props) {
@@ -29,12 +31,14 @@ export default function Travel(props) {
   const getHouses = async () => {
     const result = []
     const housesRef = collection(db, 'houses')
-    const w = query(housesRef, orderBy('createAt)', 'desc'))
-    const querySnapshot = await getDocs((doc) => {
-      result.push(doc)
+    const q = query(housesRef, orderBy('createAt', 'desc'))
+    const querySnapshot = await getDocs(q)
+    querySnapshot.forEach((doc) => {
+      result.push(doc.data)
     })
     return result
   }
+
   return (
     <View style={styles.container}>
       <ListHouses houses={houses}/>

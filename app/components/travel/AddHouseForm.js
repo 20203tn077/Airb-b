@@ -18,7 +18,7 @@ const widthScreen = Dimensions.get("window").width;
 
 export default function AddHouseForm(props) {
     const { toastRef, setLoading } = props
-    const [isVisibleMap, setIsVisibleMap] = useState(true)
+    const [isVisibleMap, setIsVisibleMap] = useState(false)
     const [imageSelected, setImageSelected] = useState([])
     const [place, setPlace] = useState('')
     const [address, setAddress] = useState('')
@@ -28,27 +28,28 @@ export default function AddHouseForm(props) {
     const navigation = useNavigation()
 
     const saveHouse = () => {
+        console.log('asdasdasd');
         let errores = 0;
 
         if (isEmpty(place)) {
-            setError({...error, place: 'Debes ingresar un lugar'})
+            setError({ ...error, place: 'Debes ingresar un lugar' })
             errores++
         } else {
-            setError({...error, place: ''})
+            setError({ ...error, place: '' })
         }
 
         if (isEmpty(address)) {
-            setError({...error, address: 'Debes agregar una dirección'})
+            setError({ ...error, address: 'Debes agregar una dirección' })
             errores++
         } else {
-            setError({...error, address: ''})
+            setError({ ...error, address: '' })
         }
 
         if (isEmpty(description)) {
-            setError({...error, description: 'Debes ingresar una descripción'})
+            setError({ ...error, description: 'Debes ingresar una descripción' })
             errores++
         } else {
-            setError({...error, description: ''})
+            setError({ ...error, description: '' })
         }
 
         if (locationHouse == null) {
@@ -65,21 +66,47 @@ export default function AddHouseForm(props) {
             setError({...error, camera: ''})
         }
 
+        console.log("holaaa", errores, error);
+
         if (errores == 0) {
-            
+            setLoading(true)
+            saveImage().then(async (response) => {
+                try {
+                    const auth = getAuth()
+                    const docRef = await addDoc(collection(db, 'houses'), {
+                        id: uuid(),
+                        place: place,
+                        description: description,
+                        address: address,
+                        location: locationHouse,
+                        images: response,
+                        rating: 0,
+                        ratingTotal: 0,
+                        quantityVoting: 0,
+                        createAt: new Date(),
+                        createBy: auth.currentUser.uid
+                    })
+                    setLoading(false)
+                    navigation.navigate('travelStack')
+                } catch (err) {
+                    console.log('error: ', err);
+                }
+            }).catch((err) => {
+                console.log('error al obtener imagen :', err);
+            })
         }
-      };
+    };
 
     const saveImage = async () => {
         const imageBlob = []
         await Promise.all(
-            map(imageSelected, async () => {
+            map(imageSelected, async (image) => {
                 const response = await fetch(image)
                 const { _bodyBlob } = response
                 const storage = getStorage()
                 const id = uuid()
                 const storageRef = ref(storage, `house/${id}`)
-                await uploadBytes(storegeRef, _bodyBlob)
+                await uploadBytes(storageRef, _bodyBlob)
                     .then(async () => {
                         await getDownloadURL(ref(storage, `house/${id}`))
                             .then((url) => {
@@ -95,34 +122,6 @@ export default function AddHouseForm(props) {
         )
         return imageBlob
     }
-
-    // no sé dónde va esto :p
-    /*setLoading(true)
-    saveImage().then(async (response) => {
-        try {
-            const auth = getAuth()
-            const docRef = await addDoc(collection(db, 'houses'), {
-                id: uuid(),
-                place: place,
-                description: description,
-                address: address,
-                location: locationHouse,
-                images: response,
-                rating: 0,
-                ratingTotal: 0,
-                quantityVoting: 0,
-                createAt: new Date(),
-                createBy: auth.currentUser.uid
-            })
-            setLoading(false)
-            navigation.navigate('travelStack')
-        } catch (err) {
-            console.log('error: ', err);
-        }
-    }).catch((err) => {
-        console.log('error al obtener imagen :', err);
-    })*/
-
 
 
 
@@ -213,7 +212,7 @@ function UploadImage(props) {
                     style: 'destructive',
                     onPress: () => {
                         setImageSelected(
-                          filter(imageSelected, (imageUri) => imageUri !== image)
+                            filter(imageSelected, (imageUri) => imageUri !== image)
                         );
                     }
                 },
@@ -265,7 +264,7 @@ function FormAdd(props) {
                 placeholder="Acapulco"
                 containerStyle={styles.inputContainer}
                 errorMessage={error.place}
-                onChange={(event) => setAddress(event.nativeEvent.text)}
+                onChange={(event) => setPlace(event.nativeEvent.text)}
             ></Input>
             <Input
                 label="Direccion*"
@@ -289,7 +288,7 @@ function FormAdd(props) {
                 placeholder="Comentarios"
                 inputContainerStyle={styles.textArea}
                 errorMessage={error.description}
-                onChange={(event) => setAddress(event.nativeEvent.text)}
+                onChange={(event) => setDescription(event.nativeEvent.text)}
             ></Input>
         </View>
     );
@@ -311,15 +310,18 @@ function Map(props) {
                     longitudeDelta: 0.001
                 })
             } else {
-                toastRef.current.show('Es necesario aceptar los permisos de unicación')
+                toastRef.current.show('Es necesario aceptar los permisos de ubicación')
             }
         })()
     }, [])
 
     const confirmLocation = () => {
         setLocationHouse(location)
+        console.log("pruebaaa");
         toastRef.current.show('Ubicación guardada')
+        console.log("pruebaaa2");
         setIsVisibleMap(false)
+        console.log("pruebaaa3");
     }
 
     return (
@@ -342,19 +344,19 @@ function Map(props) {
                     </MapView>
                 )}
                 <View>
-                <Button
-                    title='Cancelar'
-                    containerStyle={styles.btnContainer}
-                    buttonStyle={styles.btnStyleCancel}
-                    onPress={() => setIsVisibleMap(false)}
-                />
-                <Button
-                    title='Guardar ubicación'
-                    containerStyle={styles.btnContainer}
-                    buttonStyle={styles.btnStyleSave}
-                    onPress={confirmLocation}
-                />
-            </View>
+                    <Button
+                        title='Cancelar'
+                        containerStyle={styles.btnContainer}
+                        buttonStyle={styles.btnStyleCancel}
+                        onPress={() => setIsVisibleMap(false)}
+                    />
+                    <Button
+                        title='Guardar ubicación'
+                        containerStyle={styles.btnContainer}
+                        buttonStyle={styles.btnStyleSave}
+                        onPress={confirmLocation}
+                    />
+                </View>
             </View>
         </Modal>
 

@@ -1,4 +1,4 @@
-import { ActivityIndicator } from 'react-native'
+import { ActivityIndicator, StyleSheet } from 'react-native'
 import React from 'react'
 import { Image } from 'react-native-elements'
 import Carousel from 'react-native-snap-carousel'

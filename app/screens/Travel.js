@@ -24,6 +24,7 @@ export default function Travel(props) {
     useCallback(()=> {
       getHouses().then((response)=> {
         setHouses(response)
+        console.log('hola', houses);
       })
     }, [])
   )

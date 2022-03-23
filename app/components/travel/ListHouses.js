@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native'
 export default function ListHouses(props) {
     
     const { houses} = props
+    console.log('houses:', houses);
     const navigation = useNavigation()
     return (
         <ScrollView>
@@ -31,8 +32,9 @@ export default function ListHouses(props) {
     )
 }
 
-function House() {
+function House(props) {
     const { house } = props
+    console.log(house.item)
     const { id, images, place, description, address } = house.item
     const imageHouses = images[0]
 
